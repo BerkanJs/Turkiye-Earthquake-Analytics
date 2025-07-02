@@ -47,7 +47,7 @@ Bu proje, Türkiye'deki deprem verilerini çeşitli kaynaklardan otomatik olarak
 │  └─ index.js        # API ana dosyası
 │
 ├─ frontend/          # React SPA
-│  ├─ src/
+│
 │  │  ├─ components/  # Grafikler, filtreler, modallar
 │  │  ├─ redux/       # State yönetimi
 │  │  └─ styles/      # Tailwind konfigürasyonları
@@ -57,6 +57,11 @@ Bu proje, Türkiye'deki deprem verilerini çeşitli kaynaklardan otomatik olarak
 ├─ .gitignore
 ├─ README.md
 └─ package.json       # Monorepo için ortak bağımlılıklar (isteğe bağlı)
+         
+
+```
+
+
 
 # 🔥 Projenin Öne Çıkan Özellikleri
 
@@ -74,5 +79,3 @@ Bu proje, Türkiye'deki deprem verilerini çeşitli kaynaklardan otomatik olarak
 
 - 🔍 **Filtreleme:**  
   Bölge bazlı, büyüklük veya tarih filtresi ile kullanıcı dostu deneyim sağlar.
-
-
