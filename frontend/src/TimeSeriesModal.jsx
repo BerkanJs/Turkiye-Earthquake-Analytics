@@ -1,31 +1,38 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import * as d3 from "d3";
 
+/* ----------  G R A F İ K   K O M P O N E N T İ  ---------- */
 function TimeSeriesChart({ data }) {
-   const parseDate = d3.timeParse("%Y-%m-%d");
+  const parseDate = d3.timeParse("%Y-%m-%d");
 
- 
-  const countsMap = d3.rollup(
+  /* 1) GÜNLÜK ÖZET (count + maxMag) */
+  const dailyStats = d3.rollups(
     data,
-    (v) => v.length,
+    (v) => ({
+      count: v.length,
+      maxMag: d3.max(v, (d) => d.magnitude),
+    }),
     (d) => d.occurred_at.slice(0, 10)
   );
 
-  const counts = Array.from(countsMap, ([dateString, count]) => {
-    const d = parseDate(dateString);
-    d.setHours(0, 0, 0, 0); 
-    return { date: d, count };
-  }).sort((a, b) => a.date - b.date);
+  /* 2) TARİHLERİ DÜZENLE ve SIRALA */
+  const allDays = dailyStats
+    .map(([dateStr, { count, maxMag }]) => {
+      const date = parseDate(dateStr);
+      date.setHours(0, 0, 0, 0);
+      return { date, count, maxMag };
+    })
+    .sort((a, b) => a.date - b.date);
 
+  /* 3) SADECE SON ≤5 GÜNÜ AL */
+  const counts = allDays.slice(Math.max(allDays.length - 5, 0));
 
+  if (counts.length === 0) return <p>Gösterilecek veri yok.</p>;
+
+  /* --- Ölçekler ve çizim parametreleri --- */
   const width = 1000;
   const height = 450;
   const margin = { top: 30, right: 90, bottom: 70, left: 90 };
-
-  const [tooltip, setTooltip] = useState(null);
-  const svgRef = useRef();
-
-  if (counts.length === 0) return <p>Gösterilecek veri yok.</p>;
 
   const x = d3
     .scaleTime()
@@ -44,36 +51,29 @@ function TimeSeriesChart({ data }) {
     .y((d) => y(d.count))
     .curve(d3.curveMonotoneX);
 
+  /* --- Tooltip state --- */
+  const [tooltip, setTooltip] = useState(null);
+  const svgRef = useRef();
 
   const handleMouseOver = (event, d) => {
-    const [xPosRaw, yPosRaw] = d3.pointer(event, svgRef.current);
-    const svgRect = svgRef.current.getBoundingClientRect();
+    const [xPos, yPos] = d3.pointer(event, svgRef.current);
+    const tooltipW = 220;
+    const tooltipH = 150;
 
- 
-    const tooltipWidth = 220;
-    const tooltipHeight = 150;
+    let left = xPos + 15;
+    if (left + tooltipW > width) left = xPos - tooltipW - 15;
 
-    
-    let left = xPosRaw + 15;
-    if (left + tooltipWidth > width) {
-      left = xPosRaw - tooltipWidth - 15;
-    }
-   
-    let top = yPosRaw - 50;
-    if (top < 0) top = yPosRaw + 10;
-   
-    if (top + tooltipHeight > height) top = height - tooltipHeight - 10;
+    let top = yPos - 50;
+    if (top < 0) top = yPos + 10;
+    if (top + tooltipH > height) top = height - tooltipH - 10;
 
     setTooltip({
       x: left,
       y: top,
       date: d3.timeFormat("%Y-%m-%d")(d.date),
       count: d.count,
+      maxMag: d.maxMag?.toFixed(1),
     });
-  };
-
-  const handleMouseOut = () => {
-    setTooltip(null);
   };
 
   return (
@@ -84,26 +84,28 @@ function TimeSeriesChart({ data }) {
         height={height}
         style={{ userSelect: "none" }}
       >
+        {/* --- X ekseni --- */}
         <g
           transform={`translate(0,${height - margin.bottom})`}
           fill="none"
           stroke="black"
           fontSize="12"
         >
-          {x.ticks(d3.timeDay.every(1)).map((tick) => (
+          {counts.map((d) => (
             <text
-              key={tick}
-              x={x(tick)}
+              key={d.date}
+              x={x(d.date)}
               y={40}
               textAnchor="middle"
               fill="black"
               style={{ fontSize: 10, writingMode: "vertical-rl" }}
             >
-              {d3.timeFormat("%Y-%m-%d")(tick)}
+              {d3.timeFormat("%Y-%m-%d")(d.date)}
             </text>
           ))}
         </g>
 
+        {/* --- Y ekseni --- */}
         <g
           transform={`translate(${margin.left},0)`}
           fill="none"
@@ -124,6 +126,7 @@ function TimeSeriesChart({ data }) {
           ))}
         </g>
 
+        {/* --- Çizgi ve Noktalar --- */}
         <path d={line(counts)} fill="none" stroke="#3182ce" strokeWidth={3} />
 
         {counts.map((d, i) => (
@@ -137,11 +140,12 @@ function TimeSeriesChart({ data }) {
             strokeWidth={2}
             style={{ cursor: "pointer" }}
             onMouseOver={(e) => handleMouseOver(e, d)}
-            onMouseOut={handleMouseOut}
+            onMouseOut={() => setTooltip(null)}
           />
         ))}
       </svg>
 
+      {/* --- Tooltip --- */}
       {tooltip && (
         <div
           style={{
@@ -155,7 +159,6 @@ function TimeSeriesChart({ data }) {
             pointerEvents: "none",
             fontSize: "14px",
             maxWidth: "220px",
-            whiteSpace: "normal",
             wordBreak: "break-word",
             zIndex: 10,
             maxHeight: "150px",
@@ -169,15 +172,18 @@ function TimeSeriesChart({ data }) {
           <div>
             <strong>Deprem Sayısı:</strong> {tooltip.count}
           </div>
+          <div>
+            <strong>Maks. Magnitüd:</strong> {tooltip.maxMag ?? "—"}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
+/* ----------  M O D A L   K O M P O N E N T İ  ---------- */
 export default function TimeSeriesModal({ visible, onClose, data }) {
   const [region, setRegion] = useState("");
-
 
   const filteredData = region
     ? data.filter((d) =>
@@ -218,12 +224,13 @@ export default function TimeSeriesModal({ visible, onClose, data }) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={{ marginBottom: "15px" }}>
+        <h2 style={{ marginBottom: 15 }}>
           {region
             ? `"${region}" Bölgesindeki Sismik Durum`
             : "Lütfen Bölge Seçiniz"}
         </h2>
 
+        {/* Bölge filtresi */}
         <div style={{ marginBottom: 15 }}>
           <label
             htmlFor="region-input"
@@ -247,7 +254,7 @@ export default function TimeSeriesModal({ visible, onClose, data }) {
           />
         </div>
 
-        {/* Region boşsa grafik gözükmesin */}
+        {/* Grafik */}
         {region.trim() !== "" && (
           filteredData.length > 0 ? (
             <TimeSeriesChart data={filteredData} />
