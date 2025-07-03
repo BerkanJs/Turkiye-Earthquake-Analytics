@@ -4,7 +4,7 @@
 
 ---
 
-![Proje Görseli](img/Proje1.png)
+![Proje Görseli](img/Proje2.png)
 
 
 ## 🚀 Proje Özeti
