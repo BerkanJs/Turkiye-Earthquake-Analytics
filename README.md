@@ -4,6 +4,9 @@
 
 ---
 
+![Proje Görseli](img/Proje1.png)
+
+
 ## 🚀 Proje Özeti
 
 Bu proje, Türkiye genelindeki deprem verilerini farklı kaynaklardan otomatik olarak çekip güncelleyen bir **backend** servisi ve bu verileri kullanıcı dostu bir şekilde görselleştiren **frontend** uygulamasından oluşmaktadır.  
