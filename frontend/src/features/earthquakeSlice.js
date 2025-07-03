@@ -5,7 +5,8 @@ import axios from 'axios';
 export const fetchEarthquakes = createAsyncThunk(
   'earthquake/fetchEarthquakes',
   async () => {
-    const response = await axios.get('http://localhost:5000/api/deprem/son');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/deprem/son`);
+
 
     console.log(response.data)
     return response.data;

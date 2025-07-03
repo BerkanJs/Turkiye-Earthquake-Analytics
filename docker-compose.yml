@@ -10,9 +10,10 @@ services:
       - DB_URL=postgresql://postgres:Berkan123@postgres:5432/deprem
     depends_on:
       - postgres
+    restart: always        
 
   postgres:
-    image: postgres:15-alpine
+    image: postgis/postgis:15-3.3-alpine  
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Berkan123
@@ -21,6 +22,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    restart: always
 
   frontend:
     build:
@@ -29,6 +31,7 @@ services:
       - "3000:80"
     depends_on:
       - backend
+    restart: always
 
 volumes:
   pgdata:

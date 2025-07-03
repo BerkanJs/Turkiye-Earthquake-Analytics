@@ -3,7 +3,8 @@ const { updateEarthquakes } = require('../services/scrapeService');
 
 exports.getLastEarthquakes = async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM earthquakes ORDER BY occurred_at DESC LIMIT 100');
+    const result = await db.query('SELECT * FROM public.earthquakes ORDER BY occurred_at DESC LIMIT 100');
+
     res.json(result.rows);
   } catch (err) {
     console.error('DB sorgu hatası:', err);
