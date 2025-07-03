@@ -6,12 +6,12 @@ export default function Marquee() {
     <>
       Hazırlayan: Berkan Özçelik - Data Kandilli Rasathanesi'nden scrape edilmiştir -{' '}
       <a
-        href="https://github.com/berkanozcelik"
+        href="https://github.com/BerkanJs"
         target="_blank"
         rel="noopener noreferrer"
         style={{ color: '#63b3ed', textDecoration: 'underline', display: 'inline-flex', alignItems: 'center' }}
       >
-        https://github.com/berkanozcelik
+        https://github.com/BerkanJs
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
